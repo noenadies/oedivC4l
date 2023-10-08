@@ -1,0 +1,89 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Videollamada WebRTC</title>
+</head>
+<body>
+    <h1>Videollamada WebRTC</h1>
+    
+    <div id="local-video-container">
+        <video id="local-video" autoplay muted></video>
+    </div>
+
+    <div id="remote-video-container">
+        <video id="remote-video" autoplay></video>
+    </div>
+
+    <button id="start-button">Iniciar Videollamada</button>
+    <button id="stop-button">Detener Videollamada</button>
+
+    <script>
+        // Captura de video local
+        const localVideo = document.getElementById('local-video');
+
+        // Video remoto recibido
+        const remoteVideo = document.getElementById('remote-video');
+
+        // Botones de inicio y detención
+        const startButton = document.getElementById('start-button');
+        const stopButton = document.getElementById('stop-button');
+
+        let localStream;
+        let peerConnection;
+
+        startButton.addEventListener('click', async () => {
+            try {
+                localStream = await navigator.mediaDevices.getUserMedia({ video: true, audio: true });
+                localVideo.srcObject = localStream;
+
+                peerConnection = new RTCPeerConnection();
+
+                // Agregar el flujo local a la conexión
+                localStream.getTracks().forEach(track => peerConnection.addTrack(track, localStream));
+
+                // Configurar el evento de recepción de flujos remotos
+                peerConnection.ontrack = (event) => {
+                    remoteVideo.srcObject = event.streams[0];
+                };
+
+                // Crear oferta de conexión
+                const offer = await peerConnection.createOffer();
+                await peerConnection.setLocalDescription(offer);
+
+                // Enviar la oferta al otro extremo (puede ser a través de una señalización o directamente)
+                const remoteOffer = offer; // Simulación de envío de oferta
+
+                // Recibir la oferta del otro extremo (puede ser a través de una señalización o directamente)
+                const receivedOffer = remoteOffer; // Simulación de recepción de oferta
+
+                // Configurar la oferta remota y crear la respuesta
+                await peerConnection.setRemoteDescription(receivedOffer);
+                const answer = await peerConnection.createAnswer();
+                await peerConnection.setLocalDescription(answer);
+
+                // Enviar la respuesta al otro extremo (puede ser a través de una señalización o directamente)
+                const remoteAnswer = answer; // Simulación de envío de respuesta
+
+                // Recibir la respuesta del otro extremo (puede ser a través de una señalización o directamente)
+                const receivedAnswer = remoteAnswer; // Simulación de recepción de respuesta
+
+                // Configurar la respuesta remota
+                await peerConnection.setRemoteDescription(receivedAnswer);
+
+                // Videollamada establecida
+                console.log('Videollamada establecida');
+            } catch (error) {
+                console.error('Error al iniciar la videollamada:', error);
+            }
+        });
+
+        stopButton.addEventListener('click', () => {
+            localStream.getTracks().forEach(track => track.stop());
+            peerConnection.close();
+            remoteVideo.srcObject = null;
+        });
+    </script>
+</body>
+</html>
